@@ -1,8 +1,10 @@
+import importlib
 import torch
 import torch.nn as nn
 from torch.nn import init
 import functools
 from torch.optim import lr_scheduler
+import yaml
 
 
 ###############################################################################
@@ -14,6 +16,51 @@ class Identity(nn.Module):
     def forward(self, x):
         return x
 
+
+def instantiate_from_config(config):
+    if not "target" in config:
+        if config == '__is_first_stage__':
+            return None
+        elif config == "__is_unconditional__":
+            return None
+        raise KeyError("Expected key `target` to instantiate.")
+    return get_obj_from_str(config["target"])(**config.get("params", dict()))
+
+
+def get_obj_from_str(string, reload=False):
+    module, cls = string.rsplit(".", 1)
+    if reload:
+        module_imp = importlib.import_module(module)
+        importlib.reload(module_imp)
+    return getattr(importlib.import_module(module, package=None), cls)
+
+def disabled_train(self, mode=True):
+    """Overwrite model.train with this function to make sure train/eval mode
+    does not change anymore."""
+    return self
+
+def get_vae():
+    config = yaml.safe_load(open('./checkpoints/vae2/config.yaml'))
+    print("config:")
+    print(config)
+    vae = instantiate_from_config(config['model']).cuda()
+
+    ckpt = torch.load('./checkpoints/vae2/animevae.pt')
+    loss = []
+    for i in ckpt["state_dict"].keys():
+        if i[0:4] == "loss":
+            loss.append(i)
+    for i in loss:
+        del ckpt["state_dict"][i]
+
+    vae.load_state_dict(ckpt["state_dict"])
+
+    vae = vae.eval()
+    vae.train = disabled_train
+    for param in vae.parameters():
+        param.requires_grad = False
+
+    return vae
 
 def get_norm_layer(norm_type='instance'):
     """Return a normalization layer

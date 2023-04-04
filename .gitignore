@@ -30,6 +30,7 @@ test/data/legacy_modules.t7
 test/data/gpu_tensors.pt
 test/htmlcov
 test/.coverage
+*/*.pt
 */*.pyc
 */**/*.pyc
 */**/**/*.pyc
@@ -41,6 +42,7 @@ test/.coverage
 test/data/legacy_serialized.pt
 *~
 .idea
-
+tmp/*
+venv/*
 #Ignore Wandb
 wandb/
