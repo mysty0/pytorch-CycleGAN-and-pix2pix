@@ -39,6 +39,12 @@ def disabled_train(self, mode=True):
     does not change anymore."""
     return self
 
+def get_unet():
+    config = yaml.safe_load(open('./config.yaml'))
+    print("unet config:")
+    print(config)
+    return instantiate_from_config(config['unet']).cuda()
+
 def get_vae():
     config = yaml.safe_load(open('./checkpoints/vae2/config.yaml'))
     print("config:")

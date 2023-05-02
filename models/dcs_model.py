@@ -147,19 +147,21 @@ class DCSModel(BaseModel):
         
         input_nc, output_nc = 4, 4
 
-        #self.netG = networks.define_G(input_nc, output_nc, opt.ngf, opt.netG, opt.norm,
-        #                              not opt.no_dropout, opt.init_type, opt.init_gain, self.gpu_ids)
-        self.netG = UNetModel(
-            in_channels=4,
-            out_channels=4,
-            channels=64,#320,
-            n_res_blocks=2,
-            attention_levels=[4,2,1],
-            channel_multipliers=[1,2,4,4],
-            n_heads=8,
-            tf_layers=1,
-            d_cond=128#768
-        ).cuda()
+        self.netG = networks.define_G(input_nc, output_nc, opt.ngf, opt.netG, opt.norm,
+                                      not opt.no_dropout, opt.init_type, opt.init_gain, self.gpu_ids)
+        # self.netG = UNetModel(
+        #     in_channels=input_nc,
+        #     out_channels=output_nc,
+        #     channels=160,
+        #     n_res_blocks=2,
+        #     attention_levels=[4,2,1],
+        #     channel_multipliers=[1,2,4,4],
+        #     n_heads=8,
+        #     tf_layers=1,
+        #     d_cond=384
+        # ).cuda()
+
+        #self.netG = networks.get_unet()
 
         if self.isTrain:  # define a discriminator; conditional GANs need to take both input and output images; Therefore, #channels for D is input_nc + output_nc
             if opt.netD == 'vgg':
@@ -183,6 +185,8 @@ class DCSModel(BaseModel):
             #self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizers.append(self.optimizer_G)
             #self.optimizers.append(self.optimizer_D)
+
+        self.no_module = True
 
     def set_input(self, input):
         """Unpack input data from the dataloader and perform necessary pre-processing steps.
@@ -277,7 +281,7 @@ class DCSModel(BaseModel):
             img = self.vae.encode(self.real_A).sample()
             #img = Variable(img, requires_grad = True)
 
-        self.fake_B = self.netG(img, torch.tensor([0]).cuda(), torch.zeros([1, 8, 8], dtype=torch.float32).cuda())  # G(A)
+        self.fake_B = self.netG(img, torch.tensor([0]).cuda(), torch.zeros([1, 320, 768], dtype=torch.float32).cuda())  # G(A)
 
         if self.vae:
             #with torch.no_grad():

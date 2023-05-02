@@ -51,7 +51,7 @@ class UNetModel(nn.Module):
         :param channel_multipliers: are the multiplicative factors for number of channels for each level
         :param n_heads: the number of attention heads in the transformers
         """
-        super().__init__()
+        super(UNetModel, self).__init__()
         self.channels = channels
 
         # Number of levels

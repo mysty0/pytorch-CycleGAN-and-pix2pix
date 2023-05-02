@@ -1,5 +1,10 @@
 import torch
 from sys import platform
+import gc
+
+gc.collect()
+
+torch.cuda.empty_cache()
 
 if not torch.cuda.is_available():
     print("GPU not detected")
@@ -12,10 +17,10 @@ import sys
 
 if platform == "win32":
     python = "venv\\Scripts\\python.exe"
-    dataset = 'datasets/cel_face_lights'
+    dataset = 'datasets/cel_face2'
 else:
     python = "venv/bin/python"
-    dataset = '/mnt/storage/scratch/$USER/datasets/cel_face_lights'
+    dataset = '/mnt/storage/scratch/$USER/datasets/cel_face2'
 
 
 base_cmd = python + f" train.py --dataroot {dataset} --name |name| --model dcs --display_id -1"
@@ -28,20 +33,20 @@ experement = int(sys.argv[1])
 print(f"experement num {experement}")
 
 if experement == 0:
-    args = " --vae --netG resnet_9blocks"
-    name = base_name + "_vae_resnet"
+    args = " --vae --load_size 156 --crop_size 128"
+    name = base_name + "_vae2_small"
     cmd = base_cmd.replace('|name|', name)
-    os.system(cmd + args + " --n_epochs 400")
+    os.system(cmd + args)
     os.system(base_test_cmd.replace('|name|', name) + args)
 elif experement == 1:
-    name = base_name + "_vae_resnet_lowres"
-    args = " --vae --netG resnet_9blocks --load_size 156 --crop_size 128"
+    name = base_name + "_vae_small"
+    args = " --vae --load_size 78 --crop_size 64"
     cmd = base_cmd.replace('|name|', name)
-    os.system(cmd + args + " --n_epochs 400")
+    os.system(cmd + args)
     os.system(base_test_cmd.replace('|name|', name) + args)
 elif experement == 2:
-    name = base_name + "_vae_resnet_long"
-    args = " --vae --netG resnet_9blocks"
+    name = base_name + "_vaefulllong"
+    args = " --vae"
     cmd = base_cmd.replace('|name|', name)
     os.system(cmd + args + " --n_epochs 800")
     os.system(base_test_cmd.replace('|name|', name) + args)
